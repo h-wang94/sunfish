@@ -232,7 +232,6 @@ class Position(namedtuple('Position', 'board score wc bc ep kp')):
 Entry = namedtuple('Entry', 'depth score gamma move')
 tp = OrderedDict()
 
-
 ###############################################################################
 # Search logic
 ###############################################################################
@@ -343,11 +342,26 @@ def parse(c):
     fil, rank = ord(c[0]) - ord('a'), int(c[1]) - 1
     return A1 + fil - 10*rank
 
+def undo(pos_hist, moves):
+    if len(pos_hist) > 1:
+        pos = pos_hist.pop()
+        l_move, sl_move = (moves.pop(), moves.pop())
+        l_move = move_to_str(l_move)
+        sl_move = move_to_str(sl_move)
+        print("Undo requested! Reverting {}, {}".format(l_move, sl_move))
+        move = None # invalidate move   
+    else:
+        print("Undo requested! Already at initial state!")
+        pos = pos_hist[0]
+    return (None, pos, pos_hist, moves)
+
 
 def render(i):
     rank, fil = divmod(i - A1, 10)
     return chr(fil + ord('a')) + str(-rank + 1)
 
+def move_to_str(m):
+    return render(119-m[0]) + render(119-m[1])
 
 def print_pos(pos):
     print()
@@ -360,19 +374,28 @@ def print_pos(pos):
 
 def main():
     pos = Position(initial, 0, (True,True), (True,True), 0, 0)
+    pos_hist = [pos]
+    moves = []
     while True:
         print_pos(pos)
 
         # We query the user until she enters a legal move.
         move = None
         while move not in pos.gen_moves():
-            match = re.match('([a-h][1-8])'*2, input('Your move: '))
-            if match:
-                move = parse(match.group(1)), parse(match.group(2))
+            move_input = input('Your move: ')
+            move_match = re.match('([a-h][1-8])'*2, move_input)
+            if move_match:
+                move = parse(move_match.group(1)), parse(move_match.group(2))
+            elif re.match('undo', move_input):
+                move, pos, pos_hist, moves = undo(pos_hist, moves)
+                print_pos(pos) # print undo-ed board
             else:
                 # Inform the user when invalid input (e.g. "help") is entered
                 print("Please enter a move like g8f6")
+
+        pos_hist.append(pos)
         pos = pos.move(move)
+        moves.append(move)
 
         # After our move we rotate the board and print it again.
         # This allows us to see the effect of our move.
@@ -389,8 +412,10 @@ def main():
 
         # The black player moves from a rotated position, so we have to
         # 'back rotate' the move before printing it.
-        print("My move:", render(119-move[0]) + render(119-move[1]))
+        print("My move:", move_to_str(move))
         pos = pos.move(move)
+        moves.append(move)
+
 
 
 if __name__ == '__main__':
