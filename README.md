@@ -1,3 +1,5 @@
+Added support for undo-ing.
+
 Sunfish
 =======
 Sunfish is a simple, but strong chess engine, written in Python, mostly for teaching purposes. Without tables and its simple interface, it takes up just 111 lines of code!
@@ -36,6 +38,7 @@ Features
 2. Filled with classic as well as modern 'chess engine tricks' for simpler and faster code.
 3. Easily adaptive evaluation function through Piece Square Tables.
 4. Uses standard Python collections and data structures for clarity and efficiency.
+*5. Added UNDO-ing feature. Just type "undo" when move is prompted.*
 
 Limitations
 ===========
